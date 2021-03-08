@@ -440,6 +440,8 @@ class base {
         if (empty($oidcuniqid)) {
             $oidcuniqid = $idtoken->claim('sub');
         }
+        // Use preferred_username if available (Okta).
+        $oidcuniqid = $this->preferred_username($idtoken);
         return [$oidcuniqid, $idtoken];
     }
 
@@ -521,6 +523,7 @@ class base {
         if (empty($oidcusername)) {
             $oidcusername = $idtoken->claim('sub');
         }
+        $oidcusername = $this->preferred_username($idtoken);
 
         // We should not fail here (idtoken was verified earlier to at least contain 'sub', but just in case...).
         if (empty($oidcusername)) {
@@ -581,5 +584,11 @@ class base {
         $tokenrec->refreshtoken = !empty($tokenparams['refresh_token']) ? $tokenparams['refresh_token'] : ''; // TBD?
         $tokenrec->idtoken = $tokenparams['id_token'];
         $DB->update_record('auth_oidc_token', $tokenrec);
+    }
+
+    private function preferred_username($idtoken) {
+        $oidcuniqid = $idtoken->claim('preferred_username');
+        $oidcuniqid = explode('@', $oidcuniqid);
+        return $oidcuniqid[0];
     }
 }
