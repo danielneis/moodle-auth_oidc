@@ -144,7 +144,7 @@ class authcode extends \auth_oidc\loginflow\base {
         $userexists = $DB->record_exists('user', $userfilters);
 
         // Check token exists.
-        $tokenrec = $DB->get_record('auth_oidc_token', ['username' => $username]);
+        $tokenrec = $DB->get_record('auth_oidc_token', ['username' => $username], '*', IGNORE_MULTIPLE);
         $code = optional_param('code', null, PARAM_RAW);
         $tokenvalid = (!empty($tokenrec) && !empty($code) && $tokenrec->authcode === $code) ? true : false;
         return ($userexists === true && $tokenvalid === true) ? true : false;
@@ -210,6 +210,7 @@ class authcode extends \auth_oidc\loginflow\base {
 
         // Decode and verify idtoken.
         list($oidcuniqid, $idtoken) = $this->process_idtoken($tokenparams['id_token'], $orignonce);
+	$oidcuniqid = mb_strtolower($oidcuniqid);
 
         // Check restrictions.
         $passed = $this->checkrestrictions($idtoken);
@@ -282,6 +283,8 @@ class authcode extends \auth_oidc\loginflow\base {
      */
     protected function handlemigration($oidcuniqid, $authparams, $tokenparams, $idtoken, $connectiononly = false) {
         global $USER, $DB, $CFG;
+
+	$oidcuniqid = mb_strtolower($oidcuniqid);
 
         // Check if OIDC user is already connected to a Moodle user.
         $tokenrec = $DB->get_record('auth_oidc_token', ['oidcuniqid' => $oidcuniqid]);
@@ -413,6 +416,7 @@ class authcode extends \auth_oidc\loginflow\base {
     protected function handlelogin($oidcuniqid, $authparams, $tokenparams, $idtoken) {
         global $DB, $CFG;
 
+	$oidcuniqid = mb_strtolower($oidcuniqid);
         $tokenrec = $DB->get_record('auth_oidc_token', ['oidcuniqid' => $oidcuniqid]);
         if (!empty($tokenrec)) {
             // Already connected user.

@@ -589,6 +589,6 @@ class base {
     private function preferred_username($idtoken) {
         $oidcuniqid = $idtoken->claim('preferred_username');
         $oidcuniqid = explode('@', $oidcuniqid);
-        return $oidcuniqid[0];
+        return mb_strtolower($oidcuniqid[0]);
     }
 }
